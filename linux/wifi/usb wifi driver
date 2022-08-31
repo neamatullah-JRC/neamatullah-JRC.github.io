@@ -1,0 +1,12 @@
+
+
+
+
+1. sudo apt-get update
+2. sudo apt-get install build-essential git dkms linux-headers-$(uname -r)
+3. git clone https://github.com/kelebek333/rtl8188fu
+4. sudo dkms add ./rtl8188fu
+5. sudo dkms build rtl8188fu/1.0
+6. sudo dkms install rtl8188fu/1.0
+7. sudo cp ./rtl8188fu/firmware/rtl8188fufw.bin /lib/firmware/rtlwifi/
+
