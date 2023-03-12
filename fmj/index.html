@@ -6,26 +6,88 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
       }
       h1 {
-        margin-top: 0;
+        text-align: center;
+      }
+      video {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
       }
       canvas {
-        margin-top: 1rem;
-        border: 2px solid #000;
+        display: none;
+      }
+      #status {
+        font-size: 1rem;
+        text-align: center;
+      }
+      #result {
+        font-size: 2rem;
+        text-align: center;
+        margin-top: 2rem;
       }
     </style>
   </head>
   <body>
     <h1>Face Mask Detector</h1>
+    <video id="video" autoplay muted></video>
     <canvas id="canvas"></canvas>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.12.0/dist/tf.min.js"></script>
-    <script src="model.js"></script>
-    <script src="app.js"></script>
+    <div id="status"></div>
+    <div id="result"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/mediapipe-facemesh.min.js"></script>
+    <script>
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const statusDiv = document.getElementById('status');
+      const resultDiv = document.getElementById('result');
+
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          video.srcObject = stream;
+          video.onloadedmetadata = () => {
+            video.play();
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            setStatus('Camera started');
+          };
+        })
+        .catch(error => {
+          setStatus(`Error starting camera: ${error}`);
+        });
+
+      const model = await tf.loadLayersModel('https://raw.githubusercontent.com/khushbuutp/Face-Mask-Detection/main/tfjs/model.json');
+
+      async function detectMask() {
+        const faceDetector = await facemesh.load({ maxFaces: 1 });
+        const face = await faceDetector.estimateFaces(video);
+        if (face.length > 0) {
+          const keypoints = face[0].scaledMesh;
+          const tensor = tf.tensor(keypoints).reshape([1, 468, 3]);
+          const prediction = model.predict(tensor);
+          const score = prediction.dataSync()[0];
+          if (score > 0.5) {
+            setResult('Mask Detected');
+          } else {
+            setResult('No Mask Detected');
+          }
+          tensor.dispose();
+          prediction.dispose();
+        }
+        requestAnimationFrame(detectMask);
+      }
+
+      function setStatus(message) {
+        statusDiv.innerText = message;
+      }
+
+      function setResult(message) {
+        resultDiv.innerText = message;
+      }
+
+      detectMask();
+    </script>
   </body>
 </html>
