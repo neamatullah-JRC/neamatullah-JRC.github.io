@@ -24,6 +24,8 @@ let label = "";
 function preload() {
   classifier = ml5.imageClassifier(imageModelURL + 'model.json');
 }
+const SerialPort = require('serialport');
+const port = new SerialPort('/dev/ttyACM0', { baudRate: 9600 });
 
 function setup() {
   createCanvas(640, 520);
@@ -33,6 +35,12 @@ function setup() {
   video.hide();
 
   flippedVideo = ml5.flipImage(video)
+   port.open(function (error) {
+    if (error) {
+      console.error('Failed to open serial port:', error);
+      return;
+    }
+    console.log('Serial port opened');
   // Start classifying
   classifyVideo();
 
@@ -69,6 +77,37 @@ function gotResult(error, results) {
   // Classifiy again!
   classifyVideo();
 }
+
+
+function gotResult(error, results) {
+  // If there is an error
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  // Get the label of the most confident prediction
+  const label = results[0].label;
+
+  // Write data to the serial port based on the label
+  switch (label) {
+    case 'label1':
+      // Write some data to the serial port for label1
+      port.write('Label 1 data');
+      break;
+    case 'label2':
+      // Write some data to the serial port for label2
+      port.write('Label 2 data');
+      break;
+    // Add more cases for other labels as needed
+    default:
+      // Do nothing
+  }
+
+  // Classify again!
+  classifyVideo();
+}
+
 
 function whoFunction() {
   var x = document.createElement("IFRAME");
