@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>WebUSB Example</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      button {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        background-color: #4caf50;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        margin: 1rem;
+      }
+      button:hover {
+        background-color: #3e8e41;
+      }
+      input[type="text"] {
+        font-size: 1rem;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid #ccc;
+        margin: 1rem;
+        width: 80%;
+      }
+      #status {
+        font-size: 1rem;
+        margin: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WebUSB Example</h1>
+    <button id="connectButton">Connect to Arduino</button>
+    <input type="text" id="inputField">
+    <button id="sendButton">Send Data</button>
+    <div id="status"></div>
+    <script>
+      function sendData() {
+        const input = document.getElementById("inputField");
+        const data = input.value;
+        const dataArray = new Uint8Array(data.length);
+        for (let i = 0; i < data.length; i++) {
+          dataArray[i] = data.charCodeAt(i);
+        }
+        device.transferOut(3, dataArray.buffer)
+          .then(() => {
+            setStatus("Data sent successfully");
+          })
+          .catch(error => {
+            setStatus(`Error sending data: ${error}`);
+          });
+      }
+
+      function setStatus(message) {
+        const statusDiv = document.getElementById("status");
+        statusDiv.innerText = message;
+      }
+
+      let device;
+
+      document.getElementById("connectButton").addEventListener("click", () => {
+        navigator.usb.requestDevice({ filters: [{ vendorId: 0x2341 }] })
+          .then(selectedDevice => {
+            device = selectedDevice;
+            return device.open();
+          })
+          .then(() => device.selectConfiguration(1))
+          .then(() => device.claimInterface(2))
+          .then(() => {
+            setStatus(`Connected to ${device.productName}`);
+          })
+          .catch(error => {
+            setStatus(`Error connecting to device: ${error}`);
+          });
+      });
+
+      document.getElementById("sendButton").addEventListener("click", sendData);
+    </script>
+  </body>
+</html>
