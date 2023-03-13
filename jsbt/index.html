@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Bluetooth Arduino Control</title>
+  </head>
+  <body>
+    <h1>Bluetooth Arduino Control</h1>
+    <button id="connectButton">Connect</button>
+    <button id="disconnectButton" disabled>Disconnect</button>
+    <button id="ledOnButton" disabled>LED On</button>
+    <button id="ledOffButton" disabled>LED Off</button>
+
+    <script>
+      const serviceUUID = '0000dfb0-0000-1000-8000-00805f9b34fb';
+      const characteristicUUID = '0000dfb1-0000-1000-8000-00805f9b34fb';
+      let device, server, characteristic;
+
+      const connect = async () => {
+        try {
+          device = await navigator.bluetooth.requestDevice({
+            filters: [{ services: [serviceUUID] }]
+          });
+          server = await device.gatt.connect();
+          const service = await server.getPrimaryService(serviceUUID);
+          characteristic = await service.getCharacteristic(characteristicUUID);
+          console.log('Connected to Arduino');
+          setConnected();
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      const disconnect = async () => {
+        await device.gatt.disconnect();
+        console.log('Disconnected from Arduino');
+        setDisconnected();
+      };
+
+      const setConnected = () => {
+        document.querySelector('#connectButton').disabled = true;
+        document.querySelector('#disconnectButton').disabled = false;
+        document.querySelector('#ledOnButton').disabled = false;
+        document.querySelector('#ledOffButton').disabled = false;
+      };
+
+      const setDisconnected = () => {
+        document.querySelector('#connectButton').disabled = false;
+        document.querySelector('#disconnectButton').disabled = true;
+        document.querySelector('#ledOnButton').disabled = true;
+        document.querySelector('#ledOffButton').disabled = true;
+      };
+
+      const ledOn = async () => {
+        const buffer = new Uint8Array([1]);
+        await characteristic.writeValue(buffer);
+        console.log('LED on');
+      };
+
+      const ledOff = async () => {
+        const buffer = new Uint8Array([0]);
+        await characteristic.writeValue(buffer);
+        console.log('LED off');
+      };
+
+      document.querySelector('#connectButton').addEventListener('click', connect);
+      document.querySelector('#disconnectButton').addEventListener('click', disconnect);
+      document.querySelector('#ledOnButton').addEventListener('click', ledOn);
+      document.querySelector('#ledOffButton').addEventListener('click', ledOff);
+    </script>
+  </body>
+</html>
