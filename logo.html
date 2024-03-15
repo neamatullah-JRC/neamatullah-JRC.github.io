@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Round Image with Resize Option</title>
+  <style>
+    .round-image-container {
+      width: 700px; /* Set the initial width of your circular container */
+      height: 700px; /* Set the initial height of your circular container */
+      border-radius: 50%; /* Make the border-radius 50% to create a circle */
+      overflow: hidden; /* Ensure the image is properly clipped within the rounded shape */
+      margin-bottom: 20px;
+      position: relative; /* Position the image container relative to its parent */
+    }
+
+    .round-image-container img {
+      position: absolute; /* Position the image absolutely within the container */
+      top: 50%; /* Align the top of the image to the center of the container */
+      left: 50%; /* Align the left of the image to the center of the container */
+      transform: translate(-50%, -50%); /* Translate the image by -50% of its width and height */
+      max-width: 100%; /* Ensure the image does not exceed the container's width */
+      max-height: 100%; /* Ensure the image does not exceed the container's height */
+    }
+  </style>
+</head>
+<body>
+
+  <div class="round-image-container" style="background-color: powderblue;">
+    <img id="round-image" src="https://raw.githubusercontent.com/neamatullah-JRC/neamatullah-JRC.github.io/master/nikah.jpg" alt="Your Image Description">
+  </div>
+
+  <input type="range" min="100" max="1000" value="700" id="image-slider"> <!-- Slider to adjust image size -->
+
+  <script>
+    // Get the image element and slider
+    const image = document.getElementById('round-image');
+    const slider = document.getElementById('image-slider');
+
+    // Function to update image size based on slider value
+    function updateImageSize() {
+      const imageSize = slider.value; // Get the value of the slider
+      image.style.width = `${imageSize}px`; // Set the width of the image
+      image.style.height = `${imageSize}px`; // Set the height of the image
+    }
+
+    // Call updateImageSize function when slider value changes
+    slider.addEventListener('input', updateImageSize);
+  </script>
+
+</body>
+</html>
