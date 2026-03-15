@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Vault — Niyamah</title>
+<link href="https://fonts.googleapis.com/css2?family=Tektur:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00f5ff;
+    --purple: #b44fff;
+    --magenta: #ff2d9e;
+    --green: #39ff14;
+    --bg: #050810;
+    --bg2: #0a0f1e;
+    --bg3: #0f1628;
+    --border: rgba(0,245,255,0.15);
+    --text: #c8d8f0;
+    --text-dim: #5a7090;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ambient glow blobs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(180,79,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-blob {
+    position: fixed;
+    bottom: -150px; right: -150px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,245,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative; z-index: 10;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(5,8,16,0.8);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo {
+    font-family: 'Tektur', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .logo span:nth-child(1) { color: var(--cyan); }
+  .logo span:nth-child(2) { color: var(--purple); }
+  .logo span:nth-child(3) { color: var(--magenta); }
+  .logo span:nth-child(4) { color: var(--green); }
+  .logo span:nth-child(5) { color: var(--cyan); }
+  .logo span:nth-child(6) { color: var(--purple); }
+  .logo span:nth-child(7) { color: var(--magenta); }
+
+  .logo-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .header-badge {
+    font-size: 0.65rem;
+    color: var(--cyan);
+    border: 1px solid rgba(0,245,255,0.3);
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN ── */
+  main {
+    position: relative; z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── CONFIG PANEL ── */
+  .config-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .config-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--purple), var(--magenta));
+  }
+
+  .config-title {
+    font-family: 'Tektur', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .config-title::before {
+    content: '▸';
+    color: var(--purple);
+  }
+
+  .config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 700px) {
+    .config-grid { grid-template-columns: 1fr; }
+    header { padding: 16px 20px; }
+    main { padding: 24px 16px 60px; }
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  input[type="text"], input[type="password"] {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    padding: 10px 14px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus, input[type="password"]:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 2px rgba(0,245,255,0.08);
+  }
+  input::placeholder { color: var(--text-dim); }
+
+  .config-note {
+    margin-top: 16px;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+  .config-note a { color: var(--cyan); text-decoration: none; }
+  .config-note a:hover { text-decoration: underline; }
+
+  /* ── UPLOAD ZONE ── */
+  .upload-zone {
+    border: 2px dashed rgba(0,245,255,0.25);
+    border-radius: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: var(--bg2);
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--cyan);
+    background: rgba(0,245,255,0.04);
+    box-shadow: 0 0 40px rgba(0,245,255,0.08) inset;
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  .upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    display: block;
+    filter: drop-shadow(0 0 12px var(--cyan));
+  }
+
+  .upload-title {
+    font-family: 'Tektur', sans-serif;
+    font-size: 1.1rem;
+    color: var(--cyan);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .upload-hint {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  /* ── PROGRESS / STATUS ── */
+  .status-bar {
+    display: none;
+    margin-bottom: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-size: 0.72rem;
+    gap: 12px;
+    align-items: center;
+  }
+  .status-bar.visible { display: flex; }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: pulse 1s infinite;
+  }
+  .status-dot.uploading { background: var(--cyan); }
+  .status-dot.success { background: var(--green); animation: none; }
+  .status-dot.error { background: var(--magenta); animation: none; }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--purple));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  /* ── GALLERY HEADER ── */
+  .gallery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .gallery-title {
+    font-family: 'Tektur', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--purple);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gallery-title::before { content: '▸'; color: var(--cyan); }
+
+  .count-badge {
+    background: rgba(180,79,255,0.12);
+    border: 1px solid rgba(180,79,255,0.3);
+    color: var(--purple);
+    font-size: 0.62rem;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.1em;
+  }
+
+  .btn-refresh {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-refresh:hover {
+    border-color: var(--cyan);
+    color: var(--cyan);
+  }
+
+  /* ── IMAGE GRID ── */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .img-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .img-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(0,245,255,0.1);
+  }
+
+  .img-card img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+  }
+
+  .img-card-info {
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .img-name {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    letter-spacing: 0.05em;
+  }
+
+  .btn-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .btn-delete:hover { color: var(--magenta); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    display: none;
+  }
+  .empty-state.visible { display: block; }
+  .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; }
+
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(5,8,16,0.95);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    backdrop-filter: blur(8px);
+  }
+  .lightbox.visible { display: flex; }
+
+  .lightbox-inner {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    text-align: center;
+  }
+  .lightbox-inner img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 0 80px rgba(0,245,255,0.12);
+  }
+
+  .lightbox-name {
+    margin-top: 12px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: -16px; right: -16px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .lightbox-close:hover { border-color: var(--magenta); color: var(--magenta); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 18px;
+    font-size: 0.72rem;
+    z-index: 2000;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    max-width: 320px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: rgba(57,255,20,0.3); }
+  .toast.success .toast-dot { background: var(--green); }
+  .toast.error { border-color: rgba(255,45,158,0.3); }
+  .toast.error .toast-dot { background: var(--magenta); }
+  .toast-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── LOADING SKELETON ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg2) 0%, var(--bg3) 50%, var(--bg2) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 6px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skeleton-card { aspect-ratio: 1; border-radius: 6px; }
+
+</style>
+</head>
+<body>
+
+<div class="glow-blob"></div>
+
+<header>
+  <div>
+    <div class="logo">
+      <span>N</span><span>i</span><span>y</span><span>a</span><span>m</span><span>a</span><span>h</span>
+    </div>
+    <div class="logo-sub">Image Vault · niyamah.shop</div>
+  </div>
+  <div class="header-badge">GitHub Storage</div>
+</header>
+
+<main>
+
+  <!-- CONFIG PANEL -->
+  <div class="config-panel">
+    <div class="config-title">GitHub Configuration</div>
+    <div class="config-grid">
+      <div class="field-group">
+        <label class="field-label">GitHub Token</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Repository (user/repo)</label>
+        <input type="text" id="ghRepo" placeholder="username/my-images">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Folder Path</label>
+        <input type="text" id="ghFolder" placeholder="images" value="images">
+      </div>
+    </div>
+    <div class="config-note">
+      Token is stored in <strong>localStorage</strong> on your browser only — never sent anywhere except GitHub API.
+      &nbsp;|&nbsp; Create a token at
+      <a href="https://github.com/settings/tokens/new?scopes=repo" target="_blank">github.com/settings/tokens</a>
+      with <strong>repo</strong> scope.
+    </div>
+  </div>
+
+  <!-- UPLOAD ZONE -->
+  <div class="upload-zone" id="dropZone">
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <span class="upload-icon">⬆</span>
+    <div class="upload-title">Drop images here or click to browse</div>
+    <div class="upload-hint">PNG · JPG · GIF · WEBP · SVG — multiple files supported</div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar" id="statusBar">
+    <div class="status-dot uploading" id="statusDot"></div>
+    <div style="flex:1">
+      <div id="statusText" style="margin-bottom:6px;font-size:0.7rem;"></div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GALLERY -->
+  <div class="gallery-header">
+    <div>
+      <div class="gallery-title">
+        Gallery
+        <span class="count-badge" id="countBadge">0 files</span>
+      </div>
+    </div>
+    <button class="btn-refresh" onclick="loadGallery()">↺ Refresh</button>
+  </div>
+
+  <div class="gallery-grid" id="galleryGrid"></div>
+  <div class="empty-state" id="emptyState">
+    <div class="empty-state-icon">📂</div>
+    <div>No images found in this folder.<br>Configure GitHub settings and upload your first image.</div>
+  </div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-inner" onclick="event.stopPropagation()">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-name" id="lightboxName"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+// ── CONFIG PERSISTENCE ──
+const FIELDS = ['ghToken','ghRepo','ghFolder'];
+FIELDS.forEach(id => {
+  const el = document.getElementById(id);
+  const saved = localStorage.getItem('niyamah_' + id);
+  if (saved) el.value = saved;
+  el.addEventListener('input', () => localStorage.setItem('niyamah_' + id, el.value.trim()));
+});
+
+function getConfig() {
+  return {
+    token: document.getElementById('ghToken').value.trim(),
+    repo: document.getElementById('ghRepo').value.trim(),
+    folder: document.getElementById('ghFolder').value.trim() || 'images',
+  };
+}
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  const dot = t.querySelector('.toast-dot');
+  t.className = `toast ${type}`;
+  dot.style.background = type === 'success' ? 'var(--green)' : 'var(--magenta)';
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── STATUS BAR ──
+function setStatus(text, state, progress = null) {
+  const bar = document.getElementById('statusBar');
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  const fill = document.getElementById('progressFill');
+
+  bar.classList.add('visible');
+  txt.textContent = text;
+  dot.className = 'status-dot ' + state;
+
+  if (progress !== null) fill.style.width = progress + '%';
+  if (state !== 'uploading') {
+    setTimeout(() => bar.classList.remove('visible'), 3000);
+  }
+}
+
+// ── GITHUB API HELPERS ──
+async function ghRequest(path, method = 'GET', body = null) {
+  const { token, repo } = getConfig();
+  if (!token || !repo) throw new Error('Configure GitHub token and repository first.');
+
+  const res = await fetch(`https://api.github.com/repos/${repo}/${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/vnd.github.v3+json',
+    },
+    body: body ? JSON.stringify(body) : null,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `GitHub API error ${res.status}`);
+  }
+  return method === 'DELETE' ? null : res.json();
+}
+
+async function uploadImage(file, index, total) {
+  const { folder } = getConfig();
+  const safeName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `${folder}/${safeName}`;
+
+  setStatus(`Uploading ${index + 1}/${total}: ${file.name}`, 'uploading', Math.round((index / total) * 90));
+
+  const base64 = await toBase64(file);
+
+  // Check if file exists (get SHA for update)
+  let sha;
+  try {
+    const existing = await ghRequest(`contents/${path}`);
+    sha = existing.sha;
+  } catch {}
+
+  const body = {
+    message: `Upload ${safeName} via Niyamah Image Vault`,
+    content: base64,
+    ...(sha ? { sha } : {}),
+  };
+
+  await ghRequest(`contents/${path}`, 'PUT', body);
+  return safeName;
+}
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── LOAD GALLERY ──
+async function loadGallery() {
+  const grid = document.getElementById('galleryGrid');
+  const empty = document.getElementById('emptyState');
+  const badge = document.getElementById('countBadge');
+
+  // Skeletons
+  grid.innerHTML = Array(8).fill(0).map(() =>
+    `<div class="skeleton skeleton-card"></div>`
+  ).join('');
+  empty.classList.remove('visible');
+
+  try {
+    const { folder } = getConfig();
+    const files = await ghRequest(`contents/${folder}`);
+
+    const images = files.filter(f =>
+      /\.(png|jpe?g|gif|webp|svg|bmp|ico)$/i.test(f.name)
+    );
+
+    badge.textContent = images.length + ' file' + (images.length !== 1 ? 's' : '');
+
+    if (!images.length) {
+      grid.innerHTML = '';
+      empty.classList.add('visible');
+      return;
+    }
+
+    grid.innerHTML = images.map(f => `
+      <div class="img-card" data-url="${f.download_url}" data-name="${f.name}" data-path="${f.path}" data-sha="">
+        <img src="${f.download_url}" alt="${f.name}" loading="lazy">
+        <div class="img-card-info">
+          <span class="img-name">${f.name}</span>
+          <button class="btn-delete" onclick="deleteImage(event, '${f.path}', '${f.sha}')" title="Delete">✕</button>
+        </div>
+      </div>
+    `).join('');
+
+    // Click to open lightbox
+    grid.querySelectorAll('.img-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.classList.contains('btn-delete')) return;
+        openLightbox(card.dataset.url, card.dataset.name);
+      });
+    });
+
+  } catch (err) {
+    grid.innerHTML = '';
+    empty.classList.add('visible');
+    if (err.message.includes('Not Found')) {
+      empty.querySelector('div:last-child').innerHTML =
+        'Folder not found. Upload an image to create it automatically.';
+    }
+    if (!getConfig().token) {
+      showToast('Enter your GitHub token to get started.', 'error');
+    }
+  }
+}
+
+// ── DELETE ──
+async function deleteImage(event, path, sha) {
+  event.stopPropagation();
+  if (!confirm('Delete this image from GitHub?')) return;
+  try {
+    await ghRequest(`contents/${path}`, 'DELETE', {
+      message: `Delete ${path} via Niyamah Image Vault`,
+      sha,
+    });
+    showToast('Image deleted.', 'success');
+    loadGallery();
+  } catch (err) {
+    showToast('Delete failed: ' + err.message, 'error');
+  }
+}
+
+// ── DRAG & DROP / FILE INPUT ──
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  handleFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/')));
+});
+
+fileInput.addEventListener('change', () => {
+  handleFiles([...fileInput.files]);
+  fileInput.value = '';
+});
+
+async function handleFiles(files) {
+  if (!files.length) return;
+
+  const { token, repo } = getConfig();
+  if (!token || !repo) {
+    showToast('Fill in GitHub Token and Repository first!', 'error');
+    return;
+  }
+
+  let success = 0;
+  for (let i = 0; i < files.length; i++) {
+    try {
+      await uploadImage(files[i], i, files.length);
+      success++;
+    } catch (err) {
+      showToast(`Failed: ${files[i].name} — ${err.message}`, 'error');
+    }
+  }
+
+  setStatus(`✓ ${success}/${files.length} uploaded`, 'success', 100);
+  showToast(`${success} image${success !== 1 ? 's' : ''} uploaded successfully!`, 'success');
+  loadGallery();
+}
+
+// ── LIGHTBOX ──
+function openLightbox(url, name) {
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightboxName').textContent = name;
+  document.getElementById('lightbox').classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('visible');
+  document.getElementById('lightboxImg').src = '';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ── INIT ──
+if (getConfig().token && getConfig().repo) loadGallery();
+</script>
+</body>
+</html>
